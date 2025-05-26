@@ -6,7 +6,7 @@
       "use": "@vercel/static-build",
       "config": {
         "outputDirectory": "public",
-        "buildCommand": "mkdir -p public && npx redoc-cli build docs/announcements.yaml -o public/announcements.html && npx redoc-cli build docs/comments.yaml -o public/comments.html && npx redoc-cli build docs/posts.yaml -o public/posts.html && npx redoc-cli build docs/icebreakers.yaml -o public/icebreakers.html"
+        "buildCommand": "mkdir -p public && npx @redocly/cli build-docs docs/announcements.yaml -o public/announcements.html && npx @redocly/cli build-docs docs/comments.yaml -o public/comments.html && npx @redocly/cli build-docs docs/posts.yaml -o public/posts.html && npx @redocly/cli build-docs docs/icebreakers.yaml -o public/icebreakers.html"
       }
     }
   ]

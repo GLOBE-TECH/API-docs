@@ -10,6 +10,6 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "redoc-cli": "^0.13.21"
+    "@redocly/cli": "^1.34.3"
   }
 }
