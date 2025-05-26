@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "outputDirectory": "public",
+        "buildCommand": "mkdir -p public && npx redoc-cli build docs/announcements.yaml -o public/announcements.html && npx redoc-cli build docs/comments.yaml -o public/comments.html && npx redoc-cli build docs/posts.yaml -o public/posts.html && npx redoc-cli build docs/icebreakers.yaml -o public/icebreakers.html"
+      }
+    }
+  ]
+}
