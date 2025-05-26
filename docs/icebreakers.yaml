@@ -1,0 +1,206 @@
+openapi: '3.0.3'
+info:
+  title: Icebreakers API
+  description: Provides endpoint for managing icebreakers, including creation, retrieval, updating, and deletion.
+  version: '1.0'
+servers:
+  - url: https://globe-app.com
+  - url: http://localhost:8000
+
+tags:
+  - name: icebreakers
+    description: Operations related to icebreakers
+paths:
+  /icebreakers:
+    parameters:
+      - name: token
+        in: cookie
+        description: Authentication token for the user.
+        schema:
+          type: string
+          format: jwt
+        required: true
+    get:
+      summary: List all icebreakers
+      description: |
+        Retrieves a list of intake icebreakers. Supports pagination.
+
+        To get icebreaker feed, send the request with only pagination parameters.
+      tags:
+        - icebreakers
+      parameters:
+        - name: limit
+          description: Maximum number of icebreakers to retrieve in a single request
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+            default: 10
+        - name: page
+          description: Page number for pagination when not using cursor-based pagination (lastIcebreakerId).
+          in: query
+          schema:
+            type: string
+            format: uuid
+
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/icebreaker'
+
+    post:
+      summary: Create a new icebreaker
+      description: Create a new announcement with the provided content, intake, and duration.
+      tags:
+        - icebreakers
+
+      requestBody:
+        description: Icebreaker details
+        content:
+          application/json:
+            schema:
+              required:
+                - content
+                - intake
+              $ref: '#/components/schemas/newIcebreaker'
+
+      responses:
+        '201':
+          description: Icebreaker created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/icebreaker'
+
+  /icebreaker/{icebreakerId}:
+    parameters:
+      - name: token
+        in: cookie
+        description: Authentication token for the user.
+        schema:
+          type: string
+        required: true
+      # - name: icebreakerId
+      #   in: path
+      #   description: The unique identifier of the icebreaker
+      #   schema:
+      #     type: string
+      #     format: uuid
+      #   required: true
+
+    get:
+      summary: Get a specific icebreaker
+      description: Retrieves the details of a specific icebreaker
+      tags:
+        - icebreakers
+      responses:
+        '200':
+          description: Details of the icebreaker.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/icebreaker'
+        '404':
+          description: Icebreaker not found.
+
+    patch:
+      summary: Update an icebreaker
+      description: |
+        Partially updates an existing icebreaker.
+
+        Only the creator can modify the content
+      tags:
+        - icebreakers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  description: new content for the icebreaker.
+      responses:
+        '200':
+          description: Icebreaker updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message.:
+                    type: string
+                    example: 'Updated successfully'
+        '400':
+          description: invalid input (e.g., providing invalid field)
+        '403':
+          description: Forbidden - User is not authorized to edit the icebreaker content.
+        '404':
+          description: Icebreaker not found
+    delete:
+      summary: Delete an icebreaker
+      description: |
+        Deletes a specific icebreaker by its ID.
+
+        This operation can only be performed by the user who created the icebreaker.
+      tags:
+        - icebreakers
+      responses:
+        '204':
+          description: Icebreaker deleted successfully. No content
+        '403':
+          description: Forbidden - User is not authorized to delete the icebreaker.
+        '404':
+          description: Icebreaker not found
+components:
+  schemas:
+    icebreaker:
+      type: object
+      description: Represents an icebreaker
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier for the icebreaker
+        userId:
+          type: string
+          format: uuid
+          description: The unique identifier of the user who created the icebreaker.
+        userFullname:
+          type: string
+          description: The full name of the user who created the icebreaker.
+        content:
+          type: string
+          description: The main content of the icebreaker.
+        intake:
+          type: string
+          description: The target student intake for the icebreaker.
+        duration:
+          type: integer
+          minimum: 1
+          default: 1
+          description: The duration in hours for which the icebreaker is active and visible.
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time when icebreaker was created.
+    newIcebreaker:
+      type: object
+      properties:
+        content:
+          type: string
+          description: The main content of the icebreaker
+        intake:
+          type: string
+          description: Target intake for the icebreaker
+        duration:
+          type: integer
+          minimum: 1
+          default: 1
+          description: the lifetime of the icebreaker

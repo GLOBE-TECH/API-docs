@@ -1,0 +1,286 @@
+openapi: '3.0.3'
+info:
+  title: Comments API
+  description: |
+    Provides endpoints for managing comments on various parent resources (e.g., Posts, Announcements, Icebreakers).
+    Allows for creating, retrieving, updating (liking/unliking, editing content), and deleting comments.
+  version: '1.0'
+servers:
+  - url: http://localhost:8000
+  - url: https://globe-app.com
+
+tags:
+  - name: comments
+    description: Operations related to comments on parent resources.
+paths:
+  /{parentType}/{parentId}/comments:
+    parameters:
+      - name: parentType
+        in: path
+        required: true
+        description: The type of the parent resource the comment belongs to.
+        schema:
+          type: string
+          enum: [POST, ANNOUNCEMENT, ICEBREAKER]
+        example: POST
+      - name: parentId
+        in: path
+        required: true
+        description: The unique identifier of the parent resource.
+        schema:
+          type: string
+          format: uuid
+        example: 'a1b2c3d4-e5f6-7890-1234-567890abcdef'
+      - name: token
+        description: Authentication token for the user. Passed as a cookie.
+        in: cookie
+        schema:
+          type: string
+        required: true
+    get:
+      tags:
+        - comments
+      summary: List comments for a parent resource
+      description: Retrieves a list of comments associated with a specific parent resource (e.g., a post or an announcement). Supports pagination.
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of comments to return.
+          schema:
+            type: integer
+            minimum: 1
+            default: 10
+        - name: page
+          in: query
+          description: Page number for pagination.
+          schema:
+            type: integer
+            minimum: 1
+        - name: lastCommentId
+          in: query
+          description: ID of the last comment received, for cursor-based pagination.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: A list of comments for the specified parent resource.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/comment'
+        '404':
+          description: Parent resource not found.
+    post:
+      summary: Create a new comment
+      description: Creates a new comment on a specified parent resource.
+      tags:
+        - comments
+      requestBody:
+        required: true
+        description: Details of the comment to be created.
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                  description: The text content of the comment.
+                  example: 'Great post, thanks for sharing!'
+                commentParentId:
+                  type: string
+                  format: uuid
+                  description: The ID of the parent comment if this is a reply.
+                  nullable: true
+                  example: 'b2c3d4e5-f6g7-8901-2345-67890abcdef0'
+      responses:
+        '201':
+          description: Comment created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/comment'
+        '400':
+          description: Invalid input, e.g., missing content.
+        '404':
+          description: Parent resource not found.
+
+  /{parentType}/{parentId}/comments/{commentId}:
+    parameters:
+      - name: parentType
+        in: path
+        required: true
+        description: The type of the parent resource.
+        schema:
+          type: string
+          enum: [POST, ANNOUNCEMENT, ICEBREAKER]
+        example: POST
+      - name: parentId
+        in: path
+        required: true
+        description: The unique identifier of the parent resource.
+        schema:
+          type: string
+          format: uuid
+        example: 'a1b2c3d4-e5f6-7890-1234-567890abcdef'
+      - name: commentId
+        in: path
+        required: true
+        description: The unique identifier of the comment.
+        schema:
+          type: string
+          format: uuid
+        example: 'c3d4e5f6-g7h8-9012-3456-7890abcdef12'
+      - name: token
+        description: Authentication token for the user. Passed as a cookie.
+        in: cookie
+        schema:
+          type: string
+        required: true
+    get:
+      summary: Get a specific comment
+      description: Retrieves the details of a specific comment by its ID, belonging to a parent resource.
+      tags:
+        - comments
+      responses:
+        '200':
+          description: Details of the specified comment.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/comment'
+        '404':
+          description: Comment or parent resource not found.
+    patch:
+      tags:
+        - comments
+      summary: Update a comment
+      description: |
+        Updates a specific comment. Allows for liking/unliking the comment or modifying its content.
+        Only the author of the comment can modify its content.
+      requestBody:
+        description: Fields to update for the comment. Provide 'like' to adjust likes, or 'content' to edit the comment text.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                like:
+                  description: |
+                    Adjusts the like counter for the comment.
+                    - `1`: Increments the likes counter by one.
+                    - `-1`: Decrements the likes counter by one.
+                  type: integer
+                  enum: [1, -1]
+                content:
+                  type: string
+                  description: New text content for the comment.
+                  example: 'Actually, I meant to say this was very insightful!'
+      responses:
+        '200':
+          description: Comment updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Updated successfully'
+        '400':
+          description: Invalid input (e.g., providing both like and content, or invalid like value).
+        '403':
+          description: Forbidden - User is not authorized to edit the comment content.
+        '404':
+          description: Comment or parent resource not found.
+    delete:
+      tags:
+        - comments
+      summary: Delete a comment
+      description: |
+        Deletes a specific comment by its ID.
+        This operation can typically only be performed by the author of the comment or a moderator.
+      responses:
+        '204':
+          description: Comment deleted successfully. No content returned.
+        '403':
+          description: Forbidden - User is not authorized to delete the comment.
+        '404':
+          description: Comment or parent resource not found.
+
+components:
+  schemas:
+    comment:
+      type: object
+      description: Represents a comment made by a user on a parent resource.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier for the comment.
+          example: 'c3d4e5f6-g7h8-9012-3456-7890abcdef12'
+        userId:
+          type: string
+          format: uuid
+          description: The ID of the user who created the comment.
+          example: '09876543-21fe-dcba-0987-654321fedcba'
+        username:
+          type: string
+          description: The username of the user who created the comment.
+          example: 'john.doe'
+        userImageUrl:
+          type: string
+          format: url
+          nullable: true
+          description: URL of the profile image of the user who created the comment.
+          example: 'https://example.com/images/johndoe.png'
+        content:
+          type: string
+          description: The text content of the comment.
+          example: 'This is a very interesting point!'
+        likesCounter:
+          type: integer
+          description: The number of likes the comment has received.
+          example: 27
+          minimum: 0
+        isEdited:
+          type: boolean
+          description: Indicates whether the comment has been edited since its original creation.
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time when the comment was created.
+          example: '2024-05-25T11:00:00Z'
+        # updatedAt:
+        #   type: string
+        #   format: date-time
+        #   description: The date and time when the comment was last updated.
+        #   example: '2024-05-25T11:05:00Z'
+        parentId:
+          type: string
+          format: uuid
+          description: The ID of the parent resource (e.g., Post, Announcement) this comment belongs to.
+          example: 'a1b2c3d4-e5f6-7890-1234-567890abcdef'
+        parentType:
+          type: string
+          enum: [POST, ANNOUNCEMENT, ICEBREAKER]
+          description: The type of the parent resource this comment belongs to.
+          example: 'POST'
+        commentParentId:
+          type: string
+          format: uuid
+          nullable: true
+          description: The ID of the parent comment if this is a reply. Null if it's a top-level comment.
+          example: 'b2c3d4e5-f6g7-8901-2345-67890abcdef0'
+        # repliesCounter:
+        #   type: integer
+        #   description: The number of replies this comment has.
+        #   example: 3
+        #   minimum: 0

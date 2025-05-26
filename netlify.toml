@@ -1,0 +1,16 @@
+# filepath: netlify.toml
+[build]
+# Command to build your site
+command = """
+  mkdir public && \\ 
+  npx redoc-cli build docs/announcements.yaml -o public/announcements.html && \\
+  npx redoc-cli build docs/comments.yaml -o public/comments.html && \\
+  npx redoc-cli build docs/posts.yaml -o public/posts.html && \\
+  npx redoc-cli build docs/icebreakers.yaml -o public/icebreakers.html
+  """
+
+# Directory to publish
+publish = "public"
+
+[build.environment]
+# NODE_VERSION = ">18"

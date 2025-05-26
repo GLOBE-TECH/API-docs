@@ -1,0 +1,238 @@
+openapi: "3.0.3"
+info:
+  title: Announcements API
+  description: Provides endpoints for managing announcements, including creation, retrieval, updating, and deletion.
+  version: "1.0"
+servers:
+  - url: https://globe-app.com
+  - url: http://localhost:8000
+
+tags:
+  - name: announcements
+    description: Operations related to announcements
+paths:
+  /announcements:
+    parameters:
+      - name: token
+        description: Authentication token for the user. Passed as a cookie.
+        in: cookie
+        schema:
+          type: string
+        required: true
+    get:
+      summary: List all announcements
+      description: |
+        Retrieves a list of announcements. Supports pagination, filtering by user, and thumbsUp count.
+
+        To get announcement feed, send the request with only pagination parameters
+      tags:
+        - announcements
+      parameters:
+        - name: limit
+          description: Maximum number of announcements to return in a single request.
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+            default: 10
+        - name: page
+          description: Page number for pagination when not using cursor-based pagination (lastAnnouncementId).
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        - name: lastAnnouncementId
+          description: ID of the last announcement received, used for cursor-based pagination to fetch the next set of announcements.
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: thumbsUp
+          description: Filter announcements by the exact number of thumbs-up.
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+        - name: userId
+          description: Filter announcements created by a specific user ID.
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: A list of announcements.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/announcement"
+
+    post:
+      summary: Create a new announcement
+      description: Creates a new announcement with the provided content, target intake, and duration.
+      tags:
+        - announcements
+      requestBody:
+        description: Announcement details
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: # Add required fields for clarity
+                - content
+              properties:
+                content:
+                  type: string
+                  description: The main content/text of the announcement.
+                  example: "Important meeting next Monday!"
+                intake:
+                  type: string
+                  description: Target intake for the announcement (e.g., "JANUARY_2024"). Can be null for global announcements.
+                  example: "SEPTEMBER_2024"
+                duration:
+                  type: integer
+                  minimum: 1
+                  default: 1
+                  description: The lifetime of the announcement in days. The announcement may be automatically archived or hidden after this period.
+                  example: 7
+      responses:
+        "201":
+          description: Announcement created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/announcement"
+
+  /announcements/{announcementId}:
+    parameters:
+      - name: announcementId
+        description: The unique identifier of the announcement.
+        in: path
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - name: token
+        description: Authentication token for the user. Passed as a cookie.
+        in: cookie
+        schema:
+          type: string
+        required: true
+    patch:
+      summary: Update an announcement
+      description: Partially updates an existing announcement. Allows updating the content or adjusting the thumbs-up count. Only the creator can modify the content.
+      tags:
+        - announcements
+      requestBody:
+        description: Fields to update for the announcement.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                thumbsUp:
+                  description: |
+                    Adjusts the thumbs-up counter for an announcement.
+                    - `1`: Increments the counter by one.
+                    - `-1`: Decrements the counter by one.
+                  type: integer
+                  enum: [1, -1]
+                content:
+                  description: New content for the announcement.
+                  type: string
+                  example: "Correction: The meeting is on Tuesday."
+      responses:
+        "200":
+          description: Announcement updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object # More specific than just an example string
+                properties:
+                  message:
+                    type: string
+                    example: "Updated successfully"
+
+    get:
+      summary: Get a specific announcement
+      description: Retrieves the details of a specific announcement by its ID.
+      tags:
+        - announcements
+      responses:
+        "200":
+          description: Details of the announcement.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/announcement"
+    delete:
+      summary: Delete an announcement
+      description: |
+        Deletes a specific announcement by its ID.
+        This operation can only be performed by the user who created the announcement.
+      tags:
+        - announcements
+      responses:
+        "204":
+          description: Announcement deleted successfully. No content returned.
+
+components:
+  schemas:
+    announcement:
+      type: object # Good practice to specify the type of the schema
+      description: Represents an announcement in the system.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier for the announcement.
+          example: "a1b2c3d4-e5f6-7890-1234-567890abcdef"
+        userId:
+          type: string
+          format: uuid
+          description: The ID of the user who created the announcement.
+          example: "09876543-21fe-dcba-0987-654321fedcba"
+        userFullname:
+          type: string
+          description: The full name of the user who created the announcement.
+          example: "Apoh Eldrige"
+        userImageUrl:
+          type: string
+          format: url
+          description: URL of the profile image of the user who created the announcement.
+          example: "https://example.com/images/janedoe.png"
+        content:
+          type: string
+          description: The main text content of the announcement.
+          example: "Don't forget the deadline for project submissions is this Friday!"
+        intake:
+          type: string
+          nullable: true
+          description: The target student intake for the announcement (e.g., "JANUARY_2024"). Null if the announcement is global.
+          example: "JANUARY_2024"
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time when the announcement was created.
+          example: "2024-05-25T10:30:00Z"
+        commentsCounter:
+          type: integer # Changed from number for consistency if it's always an integer
+          description: The number of comments on the announcement.
+          example: 15
+          minimum: 0
+        thumbsUp: # Renamed from 'thumbsUp' to 'thumbsUpCounter' for clarity if it's a counter, or keep as is if it's a boolean/state
+          type: integer # Changed from number
+          description: The number of thumbs-up (likes) the announcement has received.
+          example: 42
+          minimum: 0
+        duration:
+          type: integer # Changed from number
+          description: The duration in days for which the announcement is active or visible.
+          default: 1
+          example: 7
+          minimum: 1
