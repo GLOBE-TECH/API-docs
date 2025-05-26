@@ -2,11 +2,9 @@
 [build]
 # Command to build your site
 command = """
-  mkdir public && \\ 
-  npx @redocly/cli build-docs docs/announcements.yaml -o public/announcements.html && \\
-  npx @redocly/cli build-docs docs/comments.yaml -o public/comments.html && \\
-  npx @redocly/cli build-docs docs/posts.yaml -o public/posts.html && \\
-  npx @redocly/cli build-docs docs/icebreakers.yaml -o public/icebreakers.html
+  mkdir -p public && \\
+  npx @redocly/cli bundle docs/announcements.yaml docs/comments.yaml docs/posts.yaml docs/icebreakers.yaml --output public/openapi-bundle.yaml && \\
+  npx @redocly/cli build-docs public/openapi-bundle.yaml --output public/index.html
   """
 
 # Directory to publish
