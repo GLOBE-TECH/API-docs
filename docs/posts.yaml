@@ -1,9 +1,14 @@
-openapi: '3.0.3'
+openapi: "3.0.3"
 info:
   title: ALU GLOBE Posts
-  version: '1.0'
+  version: "1.0"
+  license:
+    name: "MIT"
+    url: "https://opensource.org/licenses/MIT"
+
 servers:
-  - url: http://localhost:8000
+  - url: https://globe-app.com
+  # - url: http://localhost:8000
 
 tags:
   - name: Post
@@ -11,9 +16,13 @@ tags:
   - name: Comment
     description: Everything about post's comments
 
+security:
+  - bearerAuth: []
+
 paths:
   /posts:
     get:
+      operationId: listPosts
       tags:
         - Post
       summary: Get posts from ALU GLOBE
@@ -57,7 +66,7 @@ paths:
           required: false
           schema:
             type: string
-            example: '3d5b1ee5-2079-4234-a1cd-cc01e1bc1cb7'
+            example: "3d5b1ee5-2079-4234-a1cd-cc01e1bc1cb7"
 
         - name: username
           in: query
@@ -65,7 +74,7 @@ paths:
           required: false
           schema:
             type: string
-            example: 'Eldrige'
+            example: "Eldrige"
 
         - name: likes
           in: query
@@ -102,15 +111,20 @@ paths:
             default: PUBLIC
 
       responses:
-        '200':
+        "200":
           description: A list of posts matching the query parameters.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Post'
+                  $ref: "#/components/schemas/Post"
+        "400":
+          description: Invalid query parameters.
+        "401":
+          description: Unauthorized. Invalid or missing token.
     post:
+      operationId: createPost
       tags:
         - Post
       summary: Create a new post
@@ -134,11 +148,16 @@ paths:
                     type: string
                     format: binary
       responses:
-        '201':
+        "201":
           description: Post created successfully.
+        "400":
+          description: Invalid request payload or missing required fields.
+        "401":
+          description: Unauthorized. Invalid or missing token.
 
   /posts/{postId}:
     get:
+      operationId: getPostById
       tags:
         - Post
       summary: Get a single post by ID
@@ -151,13 +170,13 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: The post with the specified postId.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Post'
-        '404':
+                $ref: "#/components/schemas/Post"
+        "404":
           description: Post not found
           content:
             application/json:
@@ -169,6 +188,7 @@ paths:
                     example: Not found
 
     patch:
+      operationId: updatePost
       tags:
         - Post
       summary: Update a post (like/share)
@@ -204,13 +224,13 @@ paths:
                   enum: [1, -1]
                   example: -1
       responses:
-        '200':
+        "200":
           description: Post updated successfully.
           content:
             application/json:
               schema:
                 type: string
-                example: 'Post updated successfully'
+                example: "Post updated successfully"
 
     delete:
       tags:
@@ -225,9 +245,9 @@ paths:
           schema:
             type: string
       responses:
-        '204':
+        "204":
           description: The post has been soft deleted successfully.
-        '404':
+        "404":
           description: Post not found
           content:
             application/json:
@@ -239,51 +259,211 @@ paths:
                     example: Not found
 
   /posts/{postId}/comments:
+    parameters:
+      - name: postId
+        in: path
+        required: true
+        description: The unique identifier of the post to which the comment belongs.
+        schema:
+          type: string
+          format: uuid
+        example: "3d5b1ee5-2079-4234-a1cd-cc01e1bc1cb7"
+      - name: token
+        in: cookie
+        description: Authentication token for the user.
+        required: true
+        schema:
+          type: string
     post:
+      operationId: createCommentOnPost
       tags:
         - Comment
       summary: Create a comment
+      description: Create a comment on a post by its ID.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                  description: The text content of the comment.
+                  example: "This is a great post!"
       responses:
-        '201':
+        "201":
           description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comment"
+        "400":
+          description: Invalid comment data or post not found.
+        "401":
+          description: Unauthorized. Invalid or missing token.
+        "404":
+          description: Post not found.
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: apiKey
+      in: cookie
+      name: token
   schemas:
+    User:
+      description: Information about the user.
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: the unique identifier (ID) of the entity.
+        name:
+          type: string
+          description: Name of the entity.
+        image:
+          type: string
+          format: url
+          description: the image url of the entity profile.
+          example: "https://igwxfnktwpckgfbtbffo.supabase.co/storage/v1/object/public/globe-bucket/profile-pictures/canyon.png"
+
+    Owner:
+      description: Information about the entity that the post belongs to.
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: the unique identifier (ID) of the entity.
+        name:
+          type: string
+          description: Name of the entity.
+        image:
+          type: string
+          format: url
+          description: the image url of the entity profile.
+          example: "https://igwxfnktwpckgfbtbffo.supabase.co/storage/v1/object/public/globe-bucket/profile-pictures/canyon.png"
+
+    PostMedia:
+      type: object
+      description: The information about the medias (photos, videos) of the post
+      properties:
+        url:
+          type: string
+          format: url
+          description: The url of the media
+        duration:
+          type: number
+          description: The duration of the media (if it is a video)
+          example: 3.04
+        order:
+          type: integer
+          description: The place of the current media if it the post has many medias (photos and videos)
+          example: 2
+        type:
+          type: string
+          enum: [PHOTO, VIDEO]
+          example: PHOTO
+
     Post:
       type: object
       properties:
+        id:
+          type: string
+          format: uuid
+          description: The ID of the post
+          example: 52468188-32db-4f00-9633-a629180d4b04
+        authorId:
+          type: string
+          description: The ID of the user who created the post
+          example: "3d5b1ee5-2079-4234-a1cd-cc01e1bc1cb7"
+        ownerId:
+          type: string
+          format: uuid
+          description: The ID of the entity that the
+        ownerType:
+          type: string
+          enum: [USER, CLUB, TOPIC_ROOM, GROUP]
+          example: USER
+        owner:
+          type: object
+          $ref: "#/components/schemas/Owner"
         content:
-          properties:
-            id:
-              type: string
-              example: 52468188-32db-4f00-9633-a629180d4b04
-            userId:
-              type: string
-              example: '278d7d5c-be05-4fd2-a67e-0c8485305046'
-            postId:
-              type: string
-              example: '3d5b1ee5-2079-4234-a1cd-cc01e1bc1cb7'
-            content:
-              type: string
-              example: 'Quite nice again'
-            isEdited:
-              type: boolean
-              example: true
-            createdAt:
-              type: string
-              example: '2025-05-05T18:03:14.290Z'
-            updatedAt:
-              type: string
-              example: '2025-05-08T07:36:14.128Z'
-            commentParentId:
-              type: string
-              example: null
-            likesCount:
-              type: number
-              example: null
-            userImageUrl:
-              type: string
-              example: 'https://igwxfnktwpckgfbtbffo.supabase.co/storage/v1/object/public/globe-bucket/profile-pictures/canyon.png'
-            username:
-              type: string
-              example: 'Eldrige'
+          type: string
+          description: The post content (text)
+          example: "Quite nice again"
+        isEdited:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          example: "2025-05-05T18:03:14.290Z"
+        updatedAt:
+          type: string
+          example: "2025-05-08T07:36:14.128Z"
+        likesCounter:
+          type: number
+          description: The number of the likes the post has.
+          example: 0
+        commentsCounter:
+          type: integer
+          description: The number of the comments the post has.
+          example: 0
+        privacy:
+          type: string
+          description: The level of post privacy
+          enum: [PUBLIC, PRIVATE, FRIENDS_ONLY]
+        tags:
+          type: string
+          description: The tags the post has.
+          example: fyp
+        postMedia:
+          type: object
+          $ref: "#/components/schemas/PostMedia"
+
+    Comment:
+      type: object
+      properties:
+        user:
+          type: object
+          $ref: "#/components/schemas/User"
+        content:
+          type: string
+          description: The text content of the comment.
+          example: "This is a great post!"
+        postId:
+          type: string
+          description: The ID of the post to which the comment belongs.
+          example: "3d5b1ee5-2079-4234-a1cd-cc01e1bc1cb7"
+        userId:
+          type: string
+          description: The ID of the user who made the comment.
+          example: "278d7d5c-be05-4fd2-a67e-0c8485305046"
+        commentParentId:
+          type: string
+          description: The ID of the parent comment, if this is a reply.
+          example: null
+        createdAt:
+          type: string
+          description: The date and time when the comment was created.
+          example: "2025-05-05T18:03:14.290Z"
+        updatedAt:
+          type: string
+          description: The date and time when the comment was last updated.
+          example: "2025-05-08T07:36:14.128Z"
+        likesCount:
+          type: integer
+          description: The number of likes the comment has received.
+          example: 10
+        userImageUrl:
+          type: string
+          description: The URL of the user's profile image.
+          example: "https://igwxfnktwpckgfbtbffo.supabase.co/storage/v1/object/public/globe-bucket/profile-pictures/canyon.png"
+        username:
+          type: string
+          description: The username of the comment author.
+          example: "Eldrige"

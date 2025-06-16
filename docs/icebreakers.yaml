@@ -1,15 +1,23 @@
-openapi: '3.0.3'
+openapi: "3.0.3"
 info:
   title: Icebreakers API
   description: Provides endpoint for managing icebreakers, including creation, retrieval, updating, and deletion.
-  version: '1.0'
+  version: "1.0" # Ensure you have a version
+  license: # Add this
+    name: "MIT" # Or your chosen license
+    url: "https://opensource.org/licenses/MIT" # URL to the license details
+
 servers:
   - url: https://globe-app.com
-  - url: http://localhost:8000
+  # - url: http://localhost:8000
 
 tags:
   - name: icebreakers
     description: Operations related to icebreakers
+
+security:
+  - bearerAuth: []
+
 paths:
   /icebreakers:
     parameters:
@@ -21,6 +29,7 @@ paths:
           format: jwt
         required: true
     get:
+      operationId: listIcebreakers
       summary: List all icebreakers
       description: |
         Retrieves a list of intake icebreakers. Supports pagination.
@@ -45,14 +54,16 @@ paths:
             format: uuid
 
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/icebreaker'
+                  $ref: "#/components/schemas/icebreaker"
+        "401":
+          description: Unauthorized. Invalid or missing token.
 
     post:
       summary: Create a new icebreaker
@@ -68,15 +79,19 @@ paths:
               required:
                 - content
                 - intake
-              $ref: '#/components/schemas/newIcebreaker'
+              $ref: "#/components/schemas/newIcebreaker"
 
       responses:
-        '201':
+        "201":
           description: Icebreaker created successfully.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/icebreaker'
+                $ref: "#/components/schemas/icebreaker"
+        "400":
+          description: Invalid request payload.
+        "401":
+          description: Unauthorized. Invalid or missing token.
 
   /icebreaker/{icebreakerId}:
     parameters:
@@ -86,30 +101,32 @@ paths:
         schema:
           type: string
         required: true
-      # - name: icebreakerId
-      #   in: path
-      #   description: The unique identifier of the icebreaker
-      #   schema:
-      #     type: string
-      #     format: uuid
-      #   required: true
+      - name: icebreakerId
+        in: path
+        description: The unique identifier of the icebreaker
+        schema:
+          type: string
+          format: uuid
+        required: true
 
     get:
+      operationId: getIcebreakerById
       summary: Get a specific icebreaker
       description: Retrieves the details of a specific icebreaker
       tags:
         - icebreakers
       responses:
-        '200':
+        "200":
           description: Details of the icebreaker.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/icebreaker'
-        '404':
+                $ref: "#/components/schemas/icebreaker"
+        "404":
           description: Icebreaker not found.
 
     patch:
+      operationId: updateIcebreakerById
       summary: Update an icebreaker
       description: |
         Partially updates an existing icebreaker.
@@ -127,7 +144,7 @@ paths:
                   type: string
                   description: new content for the icebreaker.
       responses:
-        '200':
+        "200":
           description: Icebreaker updated successfully
           content:
             application/json:
@@ -136,14 +153,15 @@ paths:
                 properties:
                   message.:
                     type: string
-                    example: 'Updated successfully'
-        '400':
+                    example: "Updated successfully"
+        "400":
           description: invalid input (e.g., providing invalid field)
-        '403':
+        "403":
           description: Forbidden - User is not authorized to edit the icebreaker content.
-        '404':
+        "404":
           description: Icebreaker not found
     delete:
+      operationId: deleteIcebreakerById
       summary: Delete an icebreaker
       description: |
         Deletes a specific icebreaker by its ID.
@@ -152,17 +170,22 @@ paths:
       tags:
         - icebreakers
       responses:
-        '204':
+        "204":
           description: Icebreaker deleted successfully. No content
-        '403':
+        "403":
           description: Forbidden - User is not authorized to delete the icebreaker.
-        '404':
+        "404":
           description: Icebreaker not found
 components:
+  securitySchemes:
+    bearerAuth:
+      type: apiKey
+      in: cookie
+      name: token
   schemas:
     icebreaker:
       type: object
-      description: Represents an icebreaker
+      description: Represents an icebreaker for the icebreaker
       properties:
         id:
           type: string

@@ -3,13 +3,20 @@ info:
   title: Announcements API
   description: Provides endpoints for managing announcements, including creation, retrieval, updating, and deletion.
   version: "1.0"
+  license:
+    name: "MIT"
+    url: "https://opensource.org/licenses/MIT"
+
 servers:
   - url: https://globe-app.com
-  - url: http://localhost:8000
+  # - url: http://localhost:8000
 
 tags:
   - name: announcements
     description: Operations related to announcements
+
+security:
+  - bearerAuth: []
 paths:
   /announcements:
     parameters:
@@ -20,6 +27,7 @@ paths:
           type: string
         required: true
     get:
+      operationId: listAnnouncements
       summary: List all announcements
       description: |
         Retrieves a list of announcements. Supports pagination, filtering by user, and thumbsUp count.
@@ -48,12 +56,12 @@ paths:
           schema:
             type: string
             format: uuid
-        - name: thumbsUp
-          description: Filter announcements by the exact number of thumbs-up.
-          in: query
-          schema:
-            type: integer
-            minimum: 0
+        # - name: thumbsUp
+        #   description: Filter announcements by the exact number of thumbs-up.
+        #   in: query
+        #   schema:
+        #     type: integer
+        #     minimum: 0
         - name: userId
           description: Filter announcements created by a specific user ID.
           in: query
@@ -69,8 +77,11 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/announcement"
+        "401":
+          description: Unauthorized to get post. (e.g., invalid or empty user token)
 
     post:
+      operationId: createAnnouncement # Add this
       summary: Create a new announcement
       description: Creates a new announcement with the provided content, target intake, and duration.
       tags:
@@ -82,7 +93,7 @@ paths:
           application/json:
             schema:
               type: object
-              required: # Add required fields for clarity
+              required:
                 - content
               properties:
                 content:
@@ -106,6 +117,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/announcement"
+        "401":
+          description: Unauthorized to create post. (e.g., invalid or empty user token)
 
   /announcements/{announcementId}:
     parameters:
@@ -123,6 +136,7 @@ paths:
           type: string
         required: true
     patch:
+      operationId: updateAnnouncementById
       summary: Update an announcement
       description: Partially updates an existing announcement. Allows updating the content or adjusting the thumbs-up count. Only the creator can modify the content.
       tags:
@@ -152,13 +166,20 @@ paths:
           content:
             application/json:
               schema:
-                type: object # More specific than just an example string
+                type: object
                 properties:
                   message:
                     type: string
                     example: "Updated successfully"
+        "400":
+          description: Invalid request payload.
+        "401":
+          description: Unauthorized. Invalid or missing token, or user not permitted to update.
+        "404":
+          description: Announcement not found.
 
     get:
+      operationId: getAnnouncementById
       summary: Get a specific announcement
       description: Retrieves the details of a specific announcement by its ID.
       tags:
@@ -180,32 +201,55 @@ paths:
       responses:
         "204":
           description: Announcement deleted successfully. No content returned.
+        "401":
+          description: Unauthorized. Invalid or missing token, or user not permitted to delete.
+        "404":
+          description: Announcement not found.
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: apiKey
+      in: cookie
+      name: token
   schemas:
+    user:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The ID of the user who created the announcement
+          example: "09876543-21fe-dcba-0987-654321fedcba"
+        first_name:
+          type: string
+          description: The full name of the user who created the announcement.
+          example: "Apoh"
+        last_name:
+          type: string
+          description: The last_name of the user who created the announcement.
+          example: "Eldrige"
+        username:
+          type: string
+          description: The full name of the user who created the announcement.
+          example: "Apoh Eldrige"
+        image:
+          type: string
+          format: url
+          description: URL of the profile image of the user who created the announcement.
+          example: "https://example.com/images/janedoe.png"
     announcement:
       type: object # Good practice to specify the type of the schema
       description: Represents an announcement in the system.
       properties:
+        user:
+          type: object
+          $ref: "#/components/schemas/user"
         id:
           type: string
           format: uuid
           description: The unique identifier for the announcement.
           example: "a1b2c3d4-e5f6-7890-1234-567890abcdef"
-        userId:
-          type: string
-          format: uuid
-          description: The ID of the user who created the announcement.
-          example: "09876543-21fe-dcba-0987-654321fedcba"
-        userFullname:
-          type: string
-          description: The full name of the user who created the announcement.
-          example: "Apoh Eldrige"
-        userImageUrl:
-          type: string
-          format: url
-          description: URL of the profile image of the user who created the announcement.
-          example: "https://example.com/images/janedoe.png"
         content:
           type: string
           description: The main text content of the announcement.
@@ -221,18 +265,22 @@ components:
           description: The date and time when the announcement was created.
           example: "2024-05-25T10:30:00Z"
         commentsCounter:
-          type: integer # Changed from number for consistency if it's always an integer
+          type: integer
           description: The number of comments on the announcement.
           example: 15
           minimum: 0
-        thumbsUp: # Renamed from 'thumbsUp' to 'thumbsUpCounter' for clarity if it's a counter, or keep as is if it's a boolean/state
-          type: integer # Changed from number
+        thumbsUp:
+          type: integer
           description: The number of thumbs-up (likes) the announcement has received.
           example: 42
           minimum: 0
         duration:
-          type: integer # Changed from number
+          type: integer
           description: The duration in days for which the announcement is active or visible.
           default: 1
           example: 7
           minimum: 1
+        liked:
+          type: boolean
+          description: true is the user has liked the announcement
+          example: true
