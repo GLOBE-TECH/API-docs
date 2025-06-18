@@ -13,8 +13,8 @@ servers:
 tags:
   - name: Post
     description: Everything about posts
-  - name: Comment
-    description: Everything about post's comments
+  # - name: Comment
+  #   description: Everything about post's comments
 
 security:
   - bearerAuth: []
@@ -76,24 +76,6 @@ paths:
             type: string
             example: "Eldrige"
 
-        - name: likes
-          in: query
-          description: Filter posts by the minimum number of likes.
-          required: false
-          schema:
-            type: integer
-            minimum: 0
-            example: 5
-
-        - name: comments
-          in: query
-          description: Filter posts by the minimum number of comments.
-          required: false
-          schema:
-            type: integer
-            minimum: 0
-            example: 2
-
         - name: privacy
           in: query
           description: |
@@ -140,13 +122,30 @@ paths:
                   type: string
                   description: The text content of the post.
                   example: This is a post
-                files:
+                media:
                   type: array
-                  description: The files to upload (images, video). Maximum 10 files.
-                  maxItems: 10
+                  description: |
+                    The files to upload (images, video). Maximum 5 files.
+                    Only following extensions are allowed.
+
+                    images:
+                      - .jpg or .jpeg
+                      - .png
+                      - .webp
+
+                    videos:
+                      - .webm
+                      - .mp4
+                      - gif
+                  maxItems: 5
                   items:
                     type: string
                     format: binary
+                tags:
+                  type: string
+                  description: |
+                    The tags of the post. It's recorded tags separated by commas
+                  example: ALU,TRADING,TREND
       responses:
         "201":
           description: Post created successfully.
@@ -258,54 +257,54 @@ paths:
                     type: string
                     example: Not found
 
-  /posts/{postId}/comments:
-    parameters:
-      - name: postId
-        in: path
-        required: true
-        description: The unique identifier of the post to which the comment belongs.
-        schema:
-          type: string
-          format: uuid
-        example: "3d5b1ee5-2079-4234-a1cd-cc01e1bc1cb7"
-      - name: token
-        in: cookie
-        description: Authentication token for the user.
-        required: true
-        schema:
-          type: string
-    post:
-      operationId: createCommentOnPost
-      tags:
-        - Comment
-      summary: Create a comment
-      description: Create a comment on a post by its ID.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - content
-              properties:
-                content:
-                  type: string
-                  description: The text content of the comment.
-                  example: "This is a great post!"
-      responses:
-        "201":
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Comment"
-        "400":
-          description: Invalid comment data or post not found.
-        "401":
-          description: Unauthorized. Invalid or missing token.
-        "404":
-          description: Post not found.
+  # /posts/{postId}/comments:
+  #   parameters:
+  #     - name: postId
+  #       in: path
+  #       required: true
+  #       description: The unique identifier of the post to which the comment belongs.
+  #       schema:
+  #         type: string
+  #         format: uuid
+  #       example: "3d5b1ee5-2079-4234-a1cd-cc01e1bc1cb7"
+  #     - name: token
+  #       in: cookie
+  #       description: Authentication token for the user.
+  #       required: true
+  #       schema:
+  #         type: string
+  #   post:
+  #     operationId: createCommentOnPost
+  #     tags:
+  #       - Comment
+  #     summary: Create a comment
+  #     description: Create a comment on a post by its ID.
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             required:
+  #               - content
+  #             properties:
+  #               content:
+  #                 type: string
+  #                 description: The text content of the comment.
+  #                 example: "This is a great post!"
+  #     responses:
+  #       "201":
+  #         description: Created
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: "#/components/schemas/Comment"
+  #       "400":
+  #         description: Invalid comment data or post not found.
+  #       "401":
+  #         description: Unauthorized. Invalid or missing token.
+  #       "404":
+  #         description: Post not found.
 
 components:
   securitySchemes:
@@ -352,6 +351,10 @@ components:
       type: object
       description: The information about the medias (photos, videos) of the post
       properties:
+        id:
+          type: string
+          format: uuid
+          description: The id of the post media
         url:
           type: string
           format: url
