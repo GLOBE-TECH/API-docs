@@ -30,7 +30,7 @@ paths:
       operationId: listAnnouncements
       summary: List all announcements
       description: |
-        Retrieves a list of announcements. Supports pagination, filtering by user, and thumbsUp count.
+        Retrieves a list of announcements. Supports pagination, filtering by user.
 
         To get announcement feed, send the request with only pagination parameters
       tags:
@@ -56,12 +56,6 @@ paths:
           schema:
             type: string
             format: uuid
-        # - name: thumbsUp
-        #   description: Filter announcements by the exact number of thumbs-up.
-        #   in: query
-        #   schema:
-        #     type: integer
-        #     minimum: 0
         - name: userId
           description: Filter announcements created by a specific user ID.
           in: query
@@ -138,7 +132,7 @@ paths:
     patch:
       operationId: updateAnnouncementById
       summary: Update an announcement
-      description: Partially updates an existing announcement. Allows updating the content or adjusting the thumbs-up count. Only the creator can modify the content.
+      description: Partially updates an existing announcement. Allows updating the content. Only the creator can modify the content.
       tags:
         - announcements
       requestBody:
@@ -149,13 +143,6 @@ paths:
             schema:
               type: object
               properties:
-                thumbsUp:
-                  description: |
-                    Adjusts the thumbs-up counter for an announcement.
-                    - `1`: Increments the counter by one.
-                    - `-1`: Decrements the counter by one.
-                  type: integer
-                  enum: [1, -1]
                 content:
                   description: New content for the announcement.
                   type: string
@@ -264,23 +251,9 @@ components:
           format: date-time
           description: The date and time when the announcement was created.
           example: "2024-05-25T10:30:00Z"
-        commentsCounter:
-          type: integer
-          description: The number of comments on the announcement.
-          example: 15
-          minimum: 0
-        thumbsUp:
-          type: integer
-          description: The number of thumbs-up (likes) the announcement has received.
-          example: 42
-          minimum: 0
         duration:
           type: integer
           description: The duration in days for which the announcement is active or visible.
           default: 1
           example: 7
           minimum: 1
-        liked:
-          type: boolean
-          description: true is the user has liked the announcement
-          example: true

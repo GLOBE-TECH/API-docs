@@ -75,6 +75,14 @@ paths:
           schema:
             type: string
             example: "Eldrige"
+        - name: publicationType
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+              - POST
+              - STORY
 
         - name: privacy
           in: query
@@ -219,6 +227,8 @@ paths:
                     Share or unshare a post.
                     - 1: share a post
                     - -1: unshare a post
+
+                    This feature is not yet well implemented
                   type: integer
                   enum: [1, -1]
                   example: -1
