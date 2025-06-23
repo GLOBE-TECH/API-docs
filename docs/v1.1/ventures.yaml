@@ -1,0 +1,187 @@
+openapi: "3.0.3"
+info:
+  title: ALU-GLOBE Ventures
+  version: "1.1"
+  license:
+    name: "MIT"
+    url: "https://opensource.org/licenses/MIT"
+
+paths:
+  /ventures:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - description
+                - category
+                - location
+                - tags
+
+              properties:
+                name:
+                  type: string
+                  description: The Official name of the venture
+                description:
+                  type: string
+                  description: A brief text that describes the venture
+                category:
+                  type: string
+                  description: The category of the venture
+                location:
+                  type: string
+                  description: The locations (countries) of the venture
+                tags:
+                  type: array
+                  items:
+                    type: string
+                coverImageUrl:
+                  type: string
+                  format: uri
+                logoUrl:
+                  type: string
+                  format: uri
+                socialLinks:
+                  type: object
+                  description: venture social media urls
+                  enum:
+                    - twitter
+                    - linkedIn
+                    - facebook
+                    - instagram
+                    # - tiktok
+                  example: { "instagram": "https://instagram.com/johndoe" }
+      responses:
+        201:
+          description: The created venture
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Venture"
+        400:
+          description: Unauthorized or incorrect field
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: Bad Request
+        500:
+          description: Something went wrong (from the backend)
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: Internal Server Error
+
+    get:
+      # requestBody:
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+
+                items:
+                  type: object
+                  $ref: "#/components/schemas/Venture"
+        500:
+          description: Something went wrong (from the backend)
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: Internal Server Error
+
+  /ventures/ventureId:
+
+components:
+  schemas:
+    Venture:
+      type: object
+      description: Represents a venture (business, startup, or project) within the ALU-GLOBE ecosystem.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the venture.
+        name:
+          type: string
+          description: Official name of the venture.
+        description:
+          type: string
+          description: A short introduction or overview describing the venture's purpose or activities.
+        location:
+          type: string
+          description: Geographic location(s) or countries where the venture operates or is expanding.
+        category:
+          type: string
+          description: Industry or sector the venture belongs to (e.g., agriculture, fintech, education).
+        tags:
+          type: array
+          items:
+            type: string
+          description: List of tags associated with the venture, useful for filtering and searching.
+        logoUrl:
+          type: string
+          format: uri
+          description: URL pointing to the venture's logo image.
+        coverImageUrl:
+          type: string
+          format: uri
+          description: URL pointing to the venture's cover or banner image.
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp indicating when the venture was created in the system.
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp of the last update to the venture's details.
+        email:
+          type: string
+          format: email
+          description: Contact email address for the venture.
+        mission:
+          type: string
+          description: A statement describing the venture's mission or long-term goal.
+        phoneNumber:
+          type: string
+          description: Contact phone number for the venture.
+        website:
+          type: string
+          format: uri
+          description: Official website URL of the venture.
+        yearEstablished:
+          type: string
+          description: Year the venture was originally established (e.g., "2018").
+        is_archived:
+          type: boolean
+          description: Indicates whether the venture is archived (no longer active or visible).
+        products:
+          type: array
+          items:
+            type: object
+          description: List of products or services offered by the venture. Structure depends on associated product schema.
+        members:
+          type: integer
+          description: Total number of members actively part of the venture.
+        followers:
+          type: integer
+          description: Number of users currently following the venture.
+        hasFollowed:
+          type: boolean
+          description: Indicates whether the currently authenticated user follows this venture.
+        isMember:
+          type: boolean
+          description: Indicates whether the currently authenticated user is a member of this venture.

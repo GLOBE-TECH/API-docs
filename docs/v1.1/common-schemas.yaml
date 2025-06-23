@@ -1,0 +1,247 @@
+components:
+  securitySchemes:
+    bearerAuth:
+      type: apiKey
+      in: cookie
+      name: token
+  schemas:
+    User:
+      description: Information about the user.
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: the unique identifier (ID) of the entity.
+        name:
+          type: string
+          description: Name of the entity.
+        image:
+          type: string
+          format: url
+          description: the image url of the entity profile.
+          example: "https://igwxfnktwpckgfbtbffo.supabase.co/storage/v1/object/public/globe-bucket/profile-pictures/canyon.png"
+
+    Owner:
+      description: Information about the entity that the post belongs to.
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: the unique identifier (ID) of the entity.
+        name:
+          type: string
+          description: Name of the entity.
+        image:
+          type: string
+          format: url
+          description: the image url of the entity profile.
+          example: "https://igwxfnktwpckgfbtbffo.supabase.co/storage/v1/object/public/globe-bucket/profile-pictures/canyon.png"
+
+    PostMedia:
+      type: object
+      description: The information about the medias (photos, videos) of the post
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The id of the post media
+        url:
+          type: string
+          format: url
+          description: The url of the media
+        duration:
+          type: number
+          description: The duration of the media (if it is a video)
+          example: 3.04
+        order:
+          type: integer
+          description: The place of the current media if it the post has many medias (photos and videos)
+          example: 2
+        type:
+          type: string
+          enum: [PHOTO, VIDEO]
+          example: PHOTO
+
+    Post:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The ID of the post
+          example: 52468188-32db-4f00-9633-a629180d4b04
+        authorId:
+          type: string
+          description: The ID of the user who created the post
+          example: "3d5b1ee5-2079-4234-a1cd-cc01e1bc1cb7"
+        ownerId:
+          type: string
+          format: uuid
+          description: The ID of the entity that the
+        ownerType:
+          type: string
+          enum: [USER, CLUB, TOPIC_ROOM, GROUP]
+          example: USER
+        owner:
+          type: object
+          $ref: "#/components/schemas/Owner"
+        content:
+          type: string
+          description: The post content (text)
+          example: "Quite nice again"
+        isEdited:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          example: "2025-05-05T18:03:14.290Z"
+        updatedAt:
+          type: string
+          example: "2025-05-08T07:36:14.128Z"
+        likesCounter:
+          type: number
+          description: The number of the likes the post has.
+          example: 0
+        commentsCounter:
+          type: integer
+          description: The number of the comments the post has.
+          example: 0
+        privacy:
+          type: string
+          description: The level of post privacy
+          enum: [PUBLIC, PRIVATE, FRIENDS_ONLY]
+        tags:
+          type: string
+          description: The tags the post has.
+          example: fyp
+        postMedia:
+          type: object
+          $ref: "#/components/schemas/PostMedia"
+
+    Comment:
+      type: object
+      properties:
+        user:
+          type: object
+          $ref: "#/components/schemas/User"
+        content:
+          type: string
+          description: The text content of the comment.
+          example: "This is a great post!"
+        postId:
+          type: string
+          description: The ID of the post to which the comment belongs.
+          example: "3d5b1ee5-2079-4234-a1cd-cc01e1bc1cb7"
+        userId:
+          type: string
+          description: The ID of the user who made the comment.
+          example: "278d7d5c-be05-4fd2-a67e-0c8485305046"
+        commentParentId:
+          type: string
+          description: The ID of the parent comment, if this is a reply.
+          example: null
+        createdAt:
+          type: string
+          description: The date and time when the comment was created.
+          example: "2025-05-05T18:03:14.290Z"
+        updatedAt:
+          type: string
+          description: The date and time when the comment was last updated.
+          example: "2025-05-08T07:36:14.128Z"
+        likesCount:
+          type: integer
+          description: The number of likes the comment has received.
+          example: 10
+        userImageUrl:
+          type: string
+          description: The URL of the user's profile image.
+          example: "https://igwxfnktwpckgfbtbffo.supabase.co/storage/v1/object/public/globe-bucket/profile-pictures/canyon.png"
+        username:
+          type: string
+          description: The username of the comment author.
+          example: "Eldrige"
+    # From announcements.yaml
+    announcement:
+      type: object
+      description: Represents an announcement in the system.
+      properties:
+        user:
+          type: object
+          $ref: "#/components/schemas/User" # Using the common User schema
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier for the announcement.
+          example: "a1b2c3d4-e5f6-7890-1234-567890abcdef"
+        content:
+          type: string
+          description: The main text content of the announcement.
+          example: "Don't forget the deadline for project submissions is this Friday!"
+        intake:
+          type: string
+          nullable: true
+          description: The target student intake for the announcement (e.g., "JANUARY_2024"). Null if the announcement is global.
+          example: "JANUARY_2024"
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time when the announcement was created.
+          example: "2024-05-25T10:30:00Z"
+        duration:
+          type: integer
+          description: The duration in days for which the announcement is active or visible.
+          default: 1
+          example: 7
+          minimum: 1
+    AnnouncementOwner:
+      type: string
+      enum:
+        - CLUB
+        - VENTURE
+    # From icebreakers.yaml
+    icebreaker:
+      type: object
+      description: Represents an icebreaker for the icebreaker
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier for the icebreaker
+        userId:
+          type: string
+          format: uuid
+          description: The unique identifier of the user who created the icebreaker.
+        userFullname:
+          type: string
+          description: The full name of the user who created the icebreaker.
+        content:
+          type: string
+          description: The main content of the icebreaker.
+        intake:
+          type: string
+          description: The target student intake for the icebreaker.
+        duration:
+          type: integer
+          minimum: 1
+          default: 1
+          description: The duration in hours for which the icebreaker is active and visible.
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time when icebreaker was created.
+    newIcebreaker:
+      type: object
+      properties:
+        content:
+          type: string
+          description: The main content of the icebreaker
+        intake:
+          type: string
+          description: Target intake for the icebreaker
+        duration:
+          type: integer
+          minimum: 1
+          default: 1
+          description: the lifetime of the icebreaker

@@ -1,0 +1,59 @@
+openapi: "3.0.3"
+info:
+  title: ALU GLOBE API
+  description: |
+    Comprehensive API for ALU GLOBE, including Posts, Comments, Icebreakers, and Announcements.
+  version: "1.0"
+  license:
+    name: "MIT"
+    url: "https://opensource.org/licenses/MIT"
+
+tags:
+  - name: Post
+    description: Everything about posts
+  - name: Icebreakers
+    description: Operations related to icebreakers
+  - name: Announcements
+    description: Operations related to announcements
+  - name: Comments
+    description: Operations related to comments on parent resources
+  - name: Ventures
+    description: Operations related to ventures
+
+servers:
+  - url: https://globe-app.com
+
+security:
+  - bearerAuth: []
+
+paths:
+  # Posts
+  /posts:
+    $ref: "posts.yaml#/paths/~1posts"
+  /posts/{postId}:
+    $ref: "posts.yaml#/paths/~1posts~1{postId}"
+
+  # Comments
+  /{parentType}/{parentId}/comments:
+    $ref: "comments.yaml#/paths/~1{parentType}~1{parentId}~1comments"
+  /{parentType}/{parentId}/comments/{commentId}:
+    $ref: "comments.yaml#/paths/~1{parentType}~1{parentId}~1comments~1{commentId}"
+
+  # Icebreakers
+  /icebreakers:
+    $ref: "icebreakers.yaml#/paths/~1icebreakers"
+  /icebreaker/{icebreakerId}:
+    $ref: "icebreakers.yaml#/paths/~1icebreaker~1{icebreakerId}"
+
+  # Announcements
+  /announcements:
+    $ref: "announcements.yaml#/paths/~1announcements"
+  /announcements/{announcementId}:
+    $ref: "announcements.yaml#/paths/~1announcements~1{announcementId}"
+
+  /ventures:
+    $ref: "ventures.yaml#/paths/~1ventures"
+  /ventures/ventureId:
+    $ref: "ventures.yaml#/paths/~1ventures~1/{ventureId}"
+# components:
+#   $ref: "common-schemas.yaml#/components" # Reference the shared components
