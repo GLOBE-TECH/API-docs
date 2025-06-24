@@ -147,15 +147,15 @@ components:
         id:
           type: string
           format: uuid
-        parentId:
-          type: string
-          format: uuid
-        parentType:
-          type: string
-          enum: [POST, COMMENT, EVENT, GROUP, VENTURE]
-        reactionType:
-          type: string
-          enum: [HEART, THUMBS_UP, LAUGH, SAD, SURPRISED]
+        # parentId:
+        #   type: string
+        #   format: uuid
+        # parentType:
+        #   type: string
+        #   enum: [POST, COMMENT, EVENT, GROUP, VENTURE]
+        # reactionType:
+        #   type: string
+        #   enum: [HEART, THUMBS_UP, LAUGH, SAD, SURPRISED]
         user:
           $ref: "#/components/schemas/User"
 
