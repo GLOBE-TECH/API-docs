@@ -54,6 +54,10 @@ paths:
   /ventures:
     $ref: "ventures.yaml#/paths/~1ventures"
   /ventures/ventureId:
-    $ref: "ventures.yaml#/paths/~1ventures~1/{ventureId}"
-# components:
-#   $ref: "common-schemas.yaml#/components" # Reference the shared components
+    $ref: "ventures.yaml#/paths/~1ventures~1{ventureId}"
+
+  # Reactions
+  /reactions:
+    $ref: "reactions.yaml#/paths/~1reactions"
+  /reactions/{reactionId}:
+    $ref: "reactions.yaml#/paths/~1reactions~1{reactionId}"

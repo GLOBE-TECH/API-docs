@@ -1,0 +1,196 @@
+openapi: "3.0.3"
+info:
+  title: Reactions API
+  version: v1.1
+  description: |
+    API for managing user reactions (like hearts, thumbs-up, etc.) to various content types such as posts, comments, events, groups, and ventures.
+
+paths:
+  /reactions:
+    post:
+      tags:
+        - Reactions
+      summary: Create a new reaction
+      description: Allows a user to react to a content item like a post, comment, or event.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - parentId
+                - parentType
+                - reactionType
+              properties:
+                parentId:
+                  type: string
+                  format: uuid
+                  description: ID of the parent entity being reacted to
+                parentType:
+                  type: string
+                  enum: [POST, COMMENT, EVENT, GROUP, VENTURE]
+                  description: Type of the entity being reacted to
+                reactionType:
+                  type: string
+                  enum: [HEART, THUMBS_UP, LAUGH, SAD, SURPRISED]
+                  description: Type of reaction
+
+      responses:
+        200:
+          description: Reaction created successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Reaction"
+
+        400:
+          $ref: "#/components/responses/BadRequest"
+
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+    get:
+      tags:
+        - Reactions
+      summary: List reactions by parent entity
+      description: Retrieve all reactions linked to a specific parent entity (post, comment, etc.).
+      parameters:
+        - name: parentId
+          in: query
+          required: true
+          description: The ID of the parent entity
+          schema:
+            type: string
+            format: uuid
+        - name: parentType
+          in: query
+          required: true
+          description: The type of the parent entity
+          schema:
+            type: string
+            enum: [POST, COMMENT, EVENT, GROUP, VENTURE]
+      responses:
+        200:
+          description: List of reactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Reaction"
+
+        400:
+          $ref: "#/components/responses/BadRequest"
+
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+  /reactions/{reactionId}:
+    get:
+      tags:
+        - Reactions
+      summary: Get a specific reaction
+      description: Retrieve details of a reaction by its unique ID.
+      parameters:
+        - name: reactionId
+          in: path
+          required: true
+          description: The ID of the reaction
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: The reaction object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reaction"
+
+        400:
+          $ref: "#/components/responses/BadRequest"
+
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+    delete:
+      tags:
+        - Reactions
+      summary: Delete a reaction
+      description: Permanently deletes a reaction by its ID.
+      parameters:
+        - name: reactionId
+          in: path
+          required: true
+          description: The ID of the reaction to delete
+          schema:
+            type: string
+            format: uuid
+      responses:
+        204:
+          description: Reaction deleted successfully
+
+        400:
+          $ref: "#/components/responses/BadRequest"
+
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+components:
+  schemas:
+    Reaction:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        parentId:
+          type: string
+          format: uuid
+        parentType:
+          type: string
+          enum: [POST, COMMENT, EVENT, GROUP, VENTURE]
+        reactionType:
+          type: string
+          enum: [HEART, THUMBS_UP, LAUGH, SAD, SURPRISED]
+        user:
+          $ref: "#/components/schemas/User"
+
+    User:
+      type: object
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        username:
+          type: string
+        image:
+          type: string
+          format: uri
+
+  responses:
+    BadRequest:
+      description: Bad request due to invalid input
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: Invalid input data
+
+    InternalServerError:
+      description: Server encountered an unexpected condition
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: Internal Server Error
