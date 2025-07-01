@@ -1,0 +1,137 @@
+openapi: "3.0.3"
+info:
+  title: TOPIC ROOM API
+  version: "v1"
+
+paths:
+  /topic-rooms:
+    post:
+      tags:
+        - Topic Room
+      summary: Create a topic room
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - description
+              properties:
+                name:
+                  type: string
+                  description: The name of the topic room
+                description:
+                  type: string
+                  description: A brief description of the topic room
+                bannerImage:
+                  type: string
+                  format: uri-template
+                tags:
+                  type: string
+      responses:
+        201:
+          description: Topic room created
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/TopicRoom"
+        400:
+          $ref: "#/components/responses/BadRequestError"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+    get:
+      tags:
+        - Topic Room
+      summary: List all topic rooms
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TopicRoom"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+  /topic-rooms/{topicRoomId}:
+    get:
+      tags:
+        - Topic Room
+      summary: Get a topic room
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TopicRoom"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+    delete:
+      tags:
+        - Topic Room
+      summary: Delete a topic room
+      responses:
+        204:
+          description: Deleted successfully
+        403:
+          $ref: "#/components/responses/ForbiddenError"
+
+components:
+  schemas:
+    TopicRoom:
+      type: object
+      description: This is the blueprint of a topic-room object
+      properties:
+        id:
+          description: The Unique identifier of the topic-room
+          type: string
+          format: uuid
+        name:
+          description: The name of the venture
+          type: string
+        description:
+          description: A brief description of the topic-room
+          type: string
+        bannerImage:
+          description: The image URL of the banner image
+          type: string
+          format: uri-template
+        createdAt:
+          type: string
+          format: date-time
+        members:
+          type: integer
+        followers:
+          type: integer
+        hasFollowed:
+          type: boolean
+        isMember:
+          type: boolean
+
+  responses:
+    BadRequestError:
+      description: Invalid input or malformed request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                description: The error message
+
+    UnauthorizedError:
+      description: You are not logged in
+
+    ForbiddenError:
+      description: You can't perform this action
+
+    InternalServerError:
+      description: Something went wrong. Please try later

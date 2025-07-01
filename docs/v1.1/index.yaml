@@ -1,4 +1,4 @@
-openapi: "3.0.3"
+openapi: "3.0.4"
 info:
   title: ALU GLOBE API
   description: |
@@ -19,6 +19,12 @@ tags:
     description: Operations related to comments on parent resources
   - name: Ventures
     description: Operations related to ventures
+  - name: Reactions
+    description: Operations related to user's reactions (likes, emojis)
+  - name: Topic Room
+    description: Operations related to topic rooms
+  - name: Events
+    description: Operations related to events
 
 servers:
   - url: https://globe-app.com
@@ -61,3 +67,19 @@ paths:
     $ref: "reactions.yaml#/paths/~1reactions"
   /reactions/{reactionId}:
     $ref: "reactions.yaml#/paths/~1reactions~1{reactionId}"
+
+  # Topic-rooms
+  /topic-rooms:
+    $ref: "topic-rooms.yaml#/paths/~1topic-rooms"
+  /topic-rooms/{topicRoomId}:
+    $ref: "topic-rooms.yaml#/paths/~1topic-rooms~1{topicRoomId}"
+
+  # Events
+  /events:
+    $ref: "events.yaml#/paths/~1events"
+  /events/{eventId}:
+    $ref: "events.yaml#/paths/~1events~1{eventId}"
+  /events/{eventId}/attendees:
+    $ref: "events.yaml#/paths/~1events~1{eventId}~1attendees"
+  /events/{eventId}/rsvp:
+    $ref: "events.yaml#/paths/~1events~1{eventId}~1rsvp"

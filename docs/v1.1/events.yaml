@@ -1,0 +1,295 @@
+openapi: "3.0.3"
+info:
+  title: Events API
+  version: "1.0"
+
+paths:
+  /events:
+    post:
+      tags:
+        - Events
+      summary: Create an event
+      operationId: createEvent
+      requestBody:
+        required: true
+          - title
+          - description
+          - location
+          - startTime
+        $ref: "#/components/requestBodies/EventBody"
+      responses:
+        201:
+          description: Event created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+        400:
+          $ref: "#/components/responses/BadRequestError"
+        401:
+          $ref: "#/components/responses/UnauthorizedError"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+    get:
+      tags:
+        - Events
+      summary: Get all events
+      operationId: getEvents
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  allOf:
+                    - $ref: "#/components/schemas/Event"
+
+  /events/{eventId}:
+    get:
+      tags:
+        - Events
+      summary: Get specific event
+      operationId: getEvent
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                  - $ref: "#/components/schemas/Event"
+                properties:
+                  attendeesImage:
+                    description: The image of the 5 first attendees
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        image:
+                          type: string
+                          format: iri
+    patch:
+      tags:
+        - Events
+      summary: Cancel an event
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                cancel:
+                  description: Cancel an event
+                  type: boolean
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+        403:
+          $ref: "#/components/responses/ForbiddenError"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+    delete:
+      tags:
+        - Events
+      summary: Delete an event
+      responses:
+        204:
+          description: Deleted successfully
+        403:
+          $ref: "#/components/responses/ForbiddenError"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+  /events/{eventId}/attendees:
+    get:
+      tags:
+        - Events
+      summary: Get event attendees
+      operationId: getEventAttendees
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EventAttendees"
+  /events/{eventId}/rsvp:
+    post:
+      tags:
+        - Events
+      summary: Add a reservation
+      responses:
+        201:
+          description: Reservation created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/EventAttendees"
+        401:
+          $ref: "#/components/responses/UnauthorizedError"
+    delete:
+      tags:
+        - Events
+      summary: Cancel the reservation
+      responses:
+        204:
+          description: Reservation cancelled successfully
+        401:
+          $ref: "#/components/responses/UnauthorizedError"
+        403:
+          $ref: "#/components/responses/ForbiddenError"
+
+components:
+  schemas:
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        location:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        capacity:
+          type: integer
+        coverImage:
+          type: string
+          format: iri
+        visibility:
+          type: string
+          enum:
+            - PUBLIC
+            - PRIVATE
+          default: PUBLIC
+        tags:
+          type: array
+          items:
+            type: string
+        status:
+          $ref: "#/components/schemas/EventStatus"
+
+          default: UPCOMING
+        host:
+          type: object
+          properties:
+            id:
+              type: string
+            first_name:
+              type: string
+            last_name:
+              type: string
+            username:
+              type: string
+            image:
+              type: string
+        attendees:
+          type: integer
+
+    EventAttendees:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        first_name:
+          type: string
+        last_name:
+          type: string
+        username:
+          type: string
+        image:
+          type: string
+          format: iri
+
+    EventStatus:
+      type: string
+      enum:
+        - DRAFT
+        - UPCOMING
+        - ONGOING
+        - COMPLETED
+        - CANCELLED
+      default: UPCOMING
+
+  requestBodies:
+    EventBody:
+      content:
+        application/json:
+          schema:
+            required:
+              - title
+              - description
+              - location
+              - startTime
+            type: object
+            properties:
+              title:
+                type: string
+              description:
+                type: string
+              location:
+                type: string
+              startTime:
+                type: string
+                format: date-time
+              endTime:
+                type: string
+                format: date-time
+              capacity:
+                type: integer
+                minimum: 1
+              coverImage:
+                type: string
+                format: iri
+              visibility:
+                $ref: "#/components/schemas/EventStatus"
+  responses:
+    BadRequestError:
+      description: Invalid input or malformed request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                description: The error message
+
+    UnauthorizedError:
+      description: You are not logged in
+
+    ForbiddenError:
+      description: You can't perform this action
+
+    InternalServerError:
+      description: Something went wrong. Please try later
