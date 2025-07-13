@@ -1,0 +1,79 @@
+openapi: "3.0.3"
+info:
+  title: Media upload
+  version: "1.0"
+
+paths:
+  /storage:
+    post:
+      tags:
+        - Storage
+      summary: Upload a media
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                category:
+                  type: string
+                  enum:
+                    - ventures
+                    - products
+                    - profile-pictures
+                    - events
+                    - banner-pictures
+      responses:
+        201:
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                properties:
+                  url:
+                    type: string
+                    format: iri
+  /storage/posts:
+    post:
+      tags:
+        - Storage
+      summary: Upload posts' media
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                media:
+                  type: array
+                  description: |
+                    The files to upload (images, video). Maximum 5 files.
+                    Only following extensions are allowed.
+
+                    images:
+                      - .jpg or .jpeg
+                      - .png
+                      - .webp
+
+                    videos:
+                      - .webm
+                      - .mp4
+                      - gif
+                  maxItems: 5
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        201:
+          description: Media updated successfully
+          content:
+            application/json:
+              schema:
+                properties:
+                  urls:
+                    type: array
+                    items:
+                      type: string
+                      format: iri

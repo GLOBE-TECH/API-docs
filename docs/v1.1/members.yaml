@@ -1,0 +1,150 @@
+openapi: "3.0.3"
+info:
+  title: Entity Members API
+  version: "1.0"
+
+paths:
+  /members:
+    post:
+      summary: Join an entity
+      tags:
+        - Members
+      responses:
+        201:
+          description: User joined successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Member"
+    get:
+      summary: Get entity members
+      tags:
+        - Members
+      requestBody:
+        $ref: "#/components/requestBodies/AddMember"
+      responses:
+        200:
+          description: List of an entity members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Member"
+        403:
+          $ref: "#/components/responses/ForbiddenError"
+
+    patch:
+      summary: Update user's role
+      tags:
+        - Members
+      requestBody:
+        $ref: "#/components/requestBodies/UpdateMemberRole"
+      responses:
+        200:
+          description: Updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Member"
+        403:
+          $ref: "#/components/responses/ForbiddenError"
+
+    delete:
+      summary: Leave an entity
+      description: To leave or exclude a user from an entity (group, venture, club, etc...)
+      tags:
+        - Members
+      requestBody:
+        $ref: "#/components/requestBodies/DeleteMember"
+      responses:
+        204:
+          $ref: "#/components/responses/NoContent"
+        403:
+          $ref: "#/components/responses/ForbiddenError"
+
+components:
+  requestBodies:
+    AddMember:
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: "#/components/schemas/Entity"
+    UpdateMemberRole:
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/Entity"
+              - properties:
+                  userId:
+                    type: string
+                    format: uuid
+                  role:
+                    type: string
+                    enum:
+                      - ADMIN
+                      - MEMBER
+    DeleteMember:
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/Entity"
+              - properties:
+                  userId:
+                    type: string
+                    format: uuid
+  schemas:
+    Member:
+      type: object
+      properties:
+        id:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        username:
+          type: string
+        image:
+          type: string
+    Entity:
+      type: object
+      properties:
+        entityId:
+          type: string
+          format: uuid
+        entityType:
+          type: string
+          enum:
+            - VENTURE
+            - CLUB
+            - TOPIC_ROOM
+            - GROUP
+            - NATION
+
+  responses:
+    NoContent:
+      description: Deleted successfully
+
+    BadRequestError:
+      description: Invalid input or malformed request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                description: The error message
+
+    UnauthorizedError:
+      description: You are not logged in
+
+    ForbiddenError:
+      description: You can't perform this action
+
+    InternalServerError:
+      description: Something went wrong. Please try later

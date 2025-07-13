@@ -25,6 +25,10 @@ tags:
     description: Operations related to topic rooms
   - name: Events
     description: Operations related to events
+  - name: Members
+    description: Operations related to an entity's members
+  - name: Storage
+    description: Operations related to uploading files
 
 servers:
   - url: https://globe-app.com
@@ -83,3 +87,12 @@ paths:
     $ref: "events.yaml#/paths/~1events~1{eventId}~1attendees"
   /events/{eventId}/rsvp:
     $ref: "events.yaml#/paths/~1events~1{eventId}~1rsvp"
+
+  # Members
+  /members:
+    $ref: "members.yaml#/paths/~1members"
+
+  /storage:
+    $ref: "storage.yaml#/paths/~1storage"
+  /storage/posts:
+    $ref: "storage.yaml#/paths/~1storage~1posts"

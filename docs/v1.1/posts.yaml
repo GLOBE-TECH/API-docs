@@ -122,7 +122,7 @@ paths:
       requestBody:
         required: true
         content:
-          multipart/form-data:
+          application/json:
             schema:
               type: object
               properties:
@@ -130,30 +130,12 @@ paths:
                   type: string
                   description: The text content of the post.
                   example: This is a post
-                media:
+                tags:
+                  description: The tags of the post
                   type: array
-                  description: |
-                    The files to upload (images, video). Maximum 5 files.
-                    Only following extensions are allowed.
-
-                    images:
-                      - .jpg or .jpeg
-                      - .png
-                      - .webp
-
-                    videos:
-                      - .webm
-                      - .mp4
-                      - gif
-                  maxItems: 5
                   items:
                     type: string
-                    format: binary
-                tags:
-                  type: string
-                  description: |
-                    The tags of the post. It's recorded tags separated by commas
-                  example: ALU,TRADING,TREND
+                  example: [ALU, TRADING, TREND]
       responses:
         "201":
           description: Post created successfully.
